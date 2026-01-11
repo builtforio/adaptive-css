@@ -1,0 +1,15 @@
+{
+  "palettes": {
+    "neutral": "#6B7280",
+    "accent": "#3B82F6",
+    "success": "#10B981",
+    "warning": "#F59E0B",
+    "error": "#EF4444",
+    "info": "#06B6D4"
+  },
+  "contrastLevel": "AA",
+  "includePaletteVars": true,
+  "includeUtilityClasses": true,
+  "darkModeSelector": "[data-theme=\"dark\"]",
+  "respectSystemPreference": true
+}

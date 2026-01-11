@@ -1,0 +1,35 @@
+{
+  "name": "adaptive-css",
+  "version": "1.0.0",
+  "description": "Generate accessible, adaptive color systems as CSS custom properties",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "adaptive-css": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "generate": "node dist/cli.js",
+    "example": "node dist/cli.js --config examples/config.json --output examples/colors.css"
+  },
+  "keywords": [
+    "css",
+    "colors",
+    "design-system",
+    "design-tokens",
+    "accessibility",
+    "wcag",
+    "dark-mode"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@adaptive-web/adaptive-ui": "^0.13.1",
+    "@happy-dom/global-registrator": "^14.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
