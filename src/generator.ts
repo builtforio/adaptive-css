@@ -101,7 +101,8 @@ export class ColorSystemGenerator {
 
         // Foreground
         const fg = this.getForegroundColor(bgColor);
-        const fgMutedIdx = isDark ? lastIdx - 10 : 10;
+        // Calculate muted foreground with proper contrast
+        const fgMuted = this.getContrastColor(neutral.palette, bgColor);
 
         // Borders
         const borderIdx = isDark ? lastIdx - 8 : 6;
@@ -138,7 +139,7 @@ export class ColorSystemGenerator {
             ``,
             `  /* Foregrounds */`,
             `  ${this.varName("color-fg")}: ${fg};`,
-            `  ${this.varName("color-fg-muted")}: ${neutral.swatches[fgMutedIdx]};`,
+            `  ${this.varName("color-fg-muted")}: ${fgMuted};`,
             ``,
             `  /* Borders */`,
             `  ${this.varName("color-border")}: ${neutral.swatches[borderIdx]};`,

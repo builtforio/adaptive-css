@@ -1,0 +1,210 @@
+/**
+ * Adaptive Color System
+ * Generated with adaptive-css
+ * Contrast Level: WCAG AAA (7:1)
+ */
+
+:root {
+  /* Raw Palette Values */
+  /* neutral palette */
+  --neutral-0: #ffffff;
+  --neutral-1: #f2fafa;
+  --neutral-2: #ecf3f4;
+  --neutral-3: #e5ecee;
+  --neutral-4: #e0e7e9;
+  --neutral-5: #dae1e4;
+  --neutral-6: #d5dcdf;
+  --neutral-7: #cfd6db;
+  --neutral-8: #cad1d6;
+  --neutral-9: #c4ccd1;
+  --neutral-10: #bfc6cc;
+  --neutral-11: #bac1c7;
+  --neutral-12: #b4bbc2;
+  --neutral-13: #afb6bd;
+  --neutral-14: #a9b0b9;
+  --neutral-15: #a4abb4;
+  --neutral-16: #9fa6af;
+  --neutral-17: #99a0aa;
+  --neutral-18: #959ca6;
+  --neutral-19: #9198a3;
+  --neutral-20: #8d949f;
+  --neutral-21: #89909c;
+  --neutral-22: #858c98;
+  --neutral-23: #808894;
+  --neutral-24: #7c8491;
+  --neutral-25: #787f8d;
+  --neutral-26: #747b8a;
+  --neutral-27: #707886;
+  --neutral-28: #6d7482;
+  --neutral-29: #6a707f;
+  --neutral-30: #666d7b;
+  --neutral-31: #636978;
+  --neutral-32: #606674;
+  --neutral-33: #5c6271;
+  --neutral-34: #595f6e;
+  --neutral-35: #555b6a;
+  --neutral-36: #525767;
+  --neutral-37: #4f5463;
+  --neutral-38: #4b5060;
+  --neutral-39: #484d5c;
+  --neutral-40: #454959;
+  --neutral-41: #414655;
+  --neutral-42: #3e4252;
+  --neutral-43: #3a3f4f;
+  --neutral-44: #373b4b;
+  --neutral-45: #343748;
+  --neutral-46: #303444;
+  --neutral-47: #2d3041;
+  --neutral-48: #2a2d3d;
+  --neutral-49: #252839;
+  --neutral-50: #1f2233;
+  --neutral-51: #1a1c2d;
+  --neutral-52: #141628;
+  --neutral-53: #0d0f21;
+  --neutral-54: #060719;
+  --neutral-55: #000000;
+
+  /* accent palette */
+  --accent-0: #ffffff;
+  --accent-1: #e5feff;
+  --accent-2: #ccfcff;
+  --accent-3: #c4f5fe;
+  --accent-4: #bbeffd;
+  --accent-5: #b3e8fb;
+  --accent-6: #ace2fb;
+  --accent-7: #a5ddfa;
+  --accent-8: #9fd8f9;
+  --accent-9: #98d2f8;
+  --accent-10: #91cdf7;
+  --accent-11: #8ac7f6;
+  --accent-12: #84c2f5;
+  --accent-13: #7dbdf4;
+  --accent-14: #76b7f3;
+  --accent-15: #6fb2f2;
+  --accent-16: #69acf2;
+  --accent-17: #62a7f1;
+  --accent-18: #5ba2f0;
+  --accent-19: #549cef;
+  --accent-20: #4e97ee;
+  --accent-21: #4791ed;
+  --accent-22: #408cec;
+  --accent-23: #3987eb;
+  --accent-24: #3381ea;
+  --accent-25: #2c7ce9;
+  --accent-26: #2576e9;
+  --accent-27: #1f71e8;
+  --accent-28: #196be7;
+  --accent-29: #1766e2;
+  --accent-30: #1762db;
+  --accent-31: #165dd5;
+  --accent-32: #1559cf;
+  --accent-33: #1554c9;
+  --accent-34: #1450c2;
+  --accent-35: #134bbc;
+  --accent-36: #1347b6;
+  --accent-37: #1242af;
+  --accent-38: #113ea9;
+  --accent-39: #113aa3;
+  --accent-40: #10359d;
+  --accent-41: #0f3197;
+  --accent-42: #0d2c91;
+  --accent-43: #0c278c;
+  --accent-44: #0a2387;
+  --accent-45: #091e81;
+  --accent-46: #07197c;
+  --accent-47: #051374;
+  --accent-48: #030c6b;
+  --accent-49: #000362;
+  --accent-50: #00024c;
+  --accent-51: #000134;
+  --accent-52: #000000;
+
+  /* Semantic Tokens - Light Mode */
+  /* Backgrounds */
+  --color-bg: #f2fafa;
+  --color-bg-subtle: #ffffff;
+  --color-bg-elevated: #ecf3f4;
+  --color-bg-surface: #f2fafa;
+
+  /* Foregrounds */
+  --color-fg: #000000;
+  --color-fg-muted: #4f5463;
+
+  /* Borders */
+  --color-border: #d5dcdf;
+  --color-border-subtle: #e0e7e9;
+
+  /* Accent */
+  --color-accent: #134bbc;
+  --color-accent-hover: #1554c9;
+  --color-accent-active: #1242af;
+  --color-accent-fg: #ffffff;
+}
+
+/* Dark Mode */
+[data-theme="dark"],
+.dark {
+  /* Backgrounds */
+  --color-bg: #0d0f21;
+  --color-bg-subtle: #060719;
+  --color-bg-elevated: #1a1c2d;
+  --color-bg-surface: #141628;
+
+  /* Foregrounds */
+  --color-fg: #ffffff;
+  --color-fg-muted: #99a0aa;
+
+  /* Borders */
+  --color-border: #2d3041;
+  --color-border-subtle: #252839;
+
+  /* Accent */
+  --color-accent: #5ba2f0;
+  --color-accent-hover: #4e97ee;
+  --color-accent-active: #69acf2;
+  --color-accent-fg: #000000;
+}
+
+/* Respect System Preference */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not(.light) {
+    /* Backgrounds */
+    --color-bg: #0d0f21;
+    --color-bg-subtle: #060719;
+    --color-bg-elevated: #1a1c2d;
+    --color-bg-surface: #141628;
+  
+    /* Foregrounds */
+    --color-fg: #ffffff;
+    --color-fg-muted: #99a0aa;
+  
+    /* Borders */
+    --color-border: #2d3041;
+    --color-border-subtle: #252839;
+  
+    /* Accent */
+    --color-accent: #5ba2f0;
+    --color-accent-hover: #4e97ee;
+    --color-accent-active: #69acf2;
+    --color-accent-fg: #000000;
+  }
+}
+
+
+/* Background Utilities */
+.bg-default { background-color: var(--color-bg); }
+.bg-subtle { background-color: var(--color-bg-subtle); }
+.bg-elevated { background-color: var(--color-bg-elevated); }
+.bg-surface { background-color: var(--color-bg-surface); }
+.bg-accent { background-color: var(--color-accent); }
+
+/* Text Utilities */
+.text-default { color: var(--color-fg); }
+.text-muted { color: var(--color-fg-muted); }
+.text-accent { color: var(--color-accent); }
+.text-on-accent { color: var(--color-accent-fg); }
+
+/* Border Utilities */
+.border-default { border-color: var(--color-border); }
+.border-subtle { border-color: var(--color-border-subtle); }
+.border-accent { border-color: var(--color-accent); }

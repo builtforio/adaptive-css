@@ -352,7 +352,7 @@
 
   /* Foregrounds */
   --color-fg: #000000;
-  --color-fg-muted: #bfc6cc;
+  --color-fg-muted: #6a707f;
 
   /* Borders */
   --color-border: #d5dcdf;
@@ -386,7 +386,7 @@
 
   /* Foregrounds */
   --color-fg: #ffffff;
-  --color-fg-muted: #343748;
+  --color-fg-muted: #787f8d;
 
   /* Borders */
   --color-border: #2d3041;
@@ -420,7 +420,7 @@
   
     /* Foregrounds */
     --color-fg: #ffffff;
-    --color-fg-muted: #343748;
+    --color-fg-muted: #787f8d;
   
     /* Borders */
     --color-border: #2d3041;
