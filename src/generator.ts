@@ -60,7 +60,9 @@ export class ColorSystemGenerator {
     }
 
     private getForegroundColor(background: Color): string {
-        return blackOrWhiteByContrast(background, this.contrastRatio, true).toColorString();
+        // defaultBlack: false = prefer white, true = prefer black
+        const preferBlack = !this.config.preferWhiteText;
+        return blackOrWhiteByContrast(background, this.contrastRatio, preferBlack).toColorString();
     }
 
     private varName(name: string): string {

@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  background: var(--color-bg, #ffffff);
+  color: var(--color-fg, #000000);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #000000;
+}
+
+/* Utility classes that use our CSS variables */
+.bg-default { background-color: var(--color-bg); }
+.bg-subtle { background-color: var(--color-bg-subtle); }
+.bg-elevated { background-color: var(--color-bg-elevated); }
+.bg-surface { background-color: var(--color-bg-surface); }
+.bg-accent { background-color: var(--color-accent); }
+
+.text-default { color: var(--color-fg); }
+.text-muted { color: var(--color-fg-muted); }
+.text-accent { color: var(--color-accent); }
+.text-on-accent { color: var(--color-accent-fg); }
+
+.border-default { border-color: var(--color-border); }
+.border-subtle { border-color: var(--color-border-subtle); }
+.border-border { border-color: var(--color-border); }
