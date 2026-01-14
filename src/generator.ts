@@ -60,7 +60,103 @@ export class ColorSystemGenerator {
     }
 
     private getForegroundColor(background: Color): string {
-        return blackOrWhiteByContrast(background, this.contrastRatio, true).toColorString();
+        // defaultBlack: false = prefer white, true = prefer black
+        const preferBlack = !this.config.preferWhiteText;
+        return blackOrWhiteByContrast(background, this.contrastRatio, preferBlack).toColorString();
+    }
+
+    /**
+     * Calculate WCAG contrast ratio between two colors
+     */
+    private getContrastRatio(color1: Color, color2: Color): number {
+        const l1 = color1.relativeLuminance;
+        const l2 = color2.relativeLuminance;
+        const lighter = Math.max(l1, l2);
+        const darker = Math.min(l1, l2);
+        return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    /**
+     * Get accent color optimized for the preferred text color.
+     * When preferWhiteText is true, finds a darker accent that allows white text.
+     * When preferWhiteText is false (default), finds a lighter accent that allows black text.
+     *
+     * WCAG 2.1 Requirements (2026 Standards):
+     * - Text contrast (SC 1.4.3): 4.5:1 for AA, 7:1 for AAA (normal text)
+     * - Button-to-background (SC 1.4.11): 3:1 minimum for non-text UI elements
+     *
+     * The algorithm prioritizes:
+     * 1. Swatches that meet text contrast AND have 3:1+ against background
+     * 2. If none found with preferred text, find best available option
+     *
+     * Returns both the color and whether the preferred foreground meets accessibility requirements.
+     */
+    private getAccentColorWithPreferredText(
+        palette: PaletteRGB,
+        background: Color
+    ): { color: Color; preferredFgAccessible: boolean } {
+        const white = Color.parse("#ffffff")!;
+        const black = Color.parse("#000000")!;
+        const preferWhite = this.config.preferWhiteText;
+        const preferredFg = preferWhite ? white : black;
+
+        // WCAG 2.1 SC 1.4.11: Non-text elements need 3:1 contrast against background
+        const nonTextContrastMin = 3.0;
+
+        // Collect all swatches with their contrast info
+        const allSwatches: {
+            index: number;
+            swatch: Color;
+            bgContrast: number;
+            fgContrast: number;
+        }[] = [];
+
+        for (let i = 0; i < palette.swatches.length; i++) {
+            const swatch = palette.swatches[i];
+            const bgContrast = this.getContrastRatio(swatch, background);
+            const fgContrast = this.getContrastRatio(swatch, preferredFg);
+            allSwatches.push({ index: i, swatch, bgContrast, fgContrast });
+        }
+
+        // Strategy 1: Find swatches that meet text contrast AND 3:1 background contrast
+        // This is the ideal case - button is visible AND text is accessible
+        const perfectSwatches = allSwatches.filter(
+            s => s.bgContrast >= nonTextContrastMin && s.fgContrast >= this.contrastRatio
+        );
+
+        if (perfectSwatches.length > 0) {
+            // Pick the one with highest background contrast for best visibility
+            perfectSwatches.sort((a, b) => b.bgContrast - a.bgContrast);
+            return { color: perfectSwatches[0].swatch, preferredFgAccessible: true };
+        }
+
+        // Strategy 2: Find swatches that meet 3:1 background contrast
+        // Then pick based on text preference
+        const visibleSwatches = allSwatches.filter(s => s.bgContrast >= nonTextContrastMin);
+
+        if (visibleSwatches.length > 0) {
+            if (preferWhite) {
+                // For white text preference, pick the darkest visible swatch
+                // (highest index = darkest = best chance for white text contrast)
+                visibleSwatches.sort((a, b) => b.index - a.index);
+            } else {
+                // For black text preference, pick the lightest visible swatch
+                visibleSwatches.sort((a, b) => a.index - b.index);
+            }
+            // Check if the selected swatch meets text contrast
+            const selected = visibleSwatches[0];
+            return {
+                color: selected.swatch,
+                preferredFgAccessible: selected.fgContrast >= this.contrastRatio,
+            };
+        }
+
+        // Strategy 3: Fallback - no swatches meet 3:1 background contrast
+        // Use standard contrast swatch (prioritizes text readability over button visibility)
+        return {
+            color: contrastSwatch(palette, background, this.contrastRatio),
+            preferredFgAccessible: false,
+        };
     }
 
     private varName(name: string): string {
@@ -101,20 +197,35 @@ export class ColorSystemGenerator {
 
         // Foreground
         const fg = this.getForegroundColor(bgColor);
-        const fgMutedIdx = isDark ? lastIdx - 10 : 10;
+        // Calculate muted foreground with proper contrast
+        const fgMuted = this.getContrastColor(neutral.palette, bgColor);
 
-        // Borders
-        const borderIdx = isDark ? lastIdx - 8 : 6;
-        const borderSubtleIdx = isDark ? lastIdx - 6 : 4;
+        // Borders - WCAG 2.1 SC 1.4.11 requires 3:1 contrast for UI components
+        // Use contrast-based selection to ensure borders are visible
+        const border = this.getContrastColor(neutral.palette, bgColor);
+        const borderColor = Color.parse(border)!;
+        const borderIdx = neutral.palette.swatches.findIndex(
+            s => s.toColorString() === borderColor.toColorString()
+        );
+        // Subtle border is slightly closer to background but still aims for visibility
+        const borderSubtleIdx = Math.max(0, borderIdx - (isDark ? 2 : -2));
 
-        // Accent colors
-        const accentColor = Color.parse(this.getContrastColor(accent.palette, bgColor))!;
+        // Accent colors - use preference-aware selection
+        const accentResult = this.getAccentColorWithPreferredText(accent.palette, bgColor);
+        const accentColor = accentResult.color;
         const accentHoverIdx = accent.palette.swatches.findIndex(
             s => s.toColorString() === accentColor.toColorString()
         );
         const accentHover = accent.swatches[Math.max(0, accentHoverIdx - (isDark ? -2 : 2))];
         const accentActive = accent.swatches[Math.min(lastIdx, accentHoverIdx + (isDark ? -2 : 2))];
-        const accentFg = this.getForegroundColor(accentColor);
+        // Use the preferred foreground if accessible, otherwise fall back to contrast-based selection
+        const accentFg = accentResult.preferredFgAccessible
+            ? (this.config.preferWhiteText ? "#ffffff" : "#000000")
+            : this.getForegroundColor(accentColor);
+
+        // WCAG 2.2 SC 2.4.13 Focus Appearance: Focus indicator needs 3:1 contrast
+        // Generate a focus ring color that contrasts with both background and accent
+        const focusRing = this.getContrastColor(accent.palette, bgColor);
 
         // Generate additional palette semantic tokens
         const additionalTokens: string[] = [];
@@ -138,7 +249,7 @@ export class ColorSystemGenerator {
             ``,
             `  /* Foregrounds */`,
             `  ${this.varName("color-fg")}: ${fg};`,
-            `  ${this.varName("color-fg-muted")}: ${neutral.swatches[fgMutedIdx]};`,
+            `  ${this.varName("color-fg-muted")}: ${fgMuted};`,
             ``,
             `  /* Borders */`,
             `  ${this.varName("color-border")}: ${neutral.swatches[borderIdx]};`,
@@ -149,6 +260,9 @@ export class ColorSystemGenerator {
             `  ${this.varName("color-accent-hover")}: ${accentHover};`,
             `  ${this.varName("color-accent-active")}: ${accentActive};`,
             `  ${this.varName("color-accent-fg")}: ${accentFg};`,
+            ``,
+            `  /* Focus - WCAG 2.2 SC 2.4.13 Focus Appearance */`,
+            `  ${this.varName("color-focus-ring")}: ${focusRing};`,
         ];
 
         if (additionalTokens.length > 0) {

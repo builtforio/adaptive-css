@@ -50,6 +50,9 @@ export interface ColorSystemConfig {
 
     /** Custom prefix for CSS variables */
     prefix?: string;
+
+    /** Prefer white text on accent colors when both black and white meet contrast requirements */
+    preferWhiteText?: boolean;
 }
 
 /**
@@ -81,4 +84,5 @@ export const defaultConfig: Partial<ColorSystemConfig> = {
     darkModeSelector: '[data-theme="dark"]',
     respectSystemPreference: true,
     prefix: "",
+    preferWhiteText: false,
 };
