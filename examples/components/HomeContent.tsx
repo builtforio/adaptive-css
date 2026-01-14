@@ -96,6 +96,22 @@ export default function HomeContent() {
     URL.revokeObjectURL(url);
   };
 
+  const handleImportCoolors = (colors: {
+    neutral?: string;
+    accent?: string;
+    success?: string;
+    warning?: string;
+    error?: string;
+    info?: string;
+  }) => {
+    if (colors.neutral) setNeutral(colors.neutral);
+    if (colors.accent) setAccent(colors.accent);
+    if (colors.success) setSuccess(colors.success);
+    if (colors.warning) setWarning(colors.warning);
+    if (colors.error) setError(colors.error);
+    if (colors.info) setInfo(colors.info);
+  };
+
   return (
     <div className="min-h-screen bg-default">
       <div className="max-w-7xl mx-auto p-6">
@@ -123,6 +139,7 @@ export default function HomeContent() {
               onPreferWhiteTextChange={setPreferWhiteText}
               onDownloadCSS={handleDownloadCSS}
               onDownloadConfig={handleDownloadConfig}
+              onImportCoolors={handleImportCoolors}
             />
 
             <div className="bg-surface border-default border rounded-lg p-6 space-y-4">
