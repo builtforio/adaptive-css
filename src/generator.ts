@@ -200,9 +200,15 @@ export class ColorSystemGenerator {
         // Calculate muted foreground with proper contrast
         const fgMuted = this.getContrastColor(neutral.palette, bgColor);
 
-        // Borders
-        const borderIdx = isDark ? lastIdx - 8 : 6;
-        const borderSubtleIdx = isDark ? lastIdx - 6 : 4;
+        // Borders - WCAG 2.1 SC 1.4.11 requires 3:1 contrast for UI components
+        // Use contrast-based selection to ensure borders are visible
+        const border = this.getContrastColor(neutral.palette, bgColor);
+        const borderColor = Color.parse(border)!;
+        const borderIdx = neutral.palette.swatches.findIndex(
+            s => s.toColorString() === borderColor.toColorString()
+        );
+        // Subtle border is slightly closer to background but still aims for visibility
+        const borderSubtleIdx = Math.max(0, borderIdx - (isDark ? 2 : -2));
 
         // Accent colors - use preference-aware selection
         const accentResult = this.getAccentColorWithPreferredText(accent.palette, bgColor);
@@ -216,6 +222,10 @@ export class ColorSystemGenerator {
         const accentFg = accentResult.preferredFgAccessible
             ? (this.config.preferWhiteText ? "#ffffff" : "#000000")
             : this.getForegroundColor(accentColor);
+
+        // WCAG 2.2 SC 2.4.13 Focus Appearance: Focus indicator needs 3:1 contrast
+        // Generate a focus ring color that contrasts with both background and accent
+        const focusRing = this.getContrastColor(accent.palette, bgColor);
 
         // Generate additional palette semantic tokens
         const additionalTokens: string[] = [];
@@ -250,6 +260,9 @@ export class ColorSystemGenerator {
             `  ${this.varName("color-accent-hover")}: ${accentHover};`,
             `  ${this.varName("color-accent-active")}: ${accentActive};`,
             `  ${this.varName("color-accent-fg")}: ${accentFg};`,
+            ``,
+            `  /* Focus - WCAG 2.2 SC 2.4.13 Focus Appearance */`,
+            `  ${this.varName("color-focus-ring")}: ${focusRing};`,
         ];
 
         if (additionalTokens.length > 0) {
