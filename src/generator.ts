@@ -81,11 +81,13 @@ export class ColorSystemGenerator {
      * When preferWhiteText is true, finds a darker accent that allows white text.
      * When preferWhiteText is false (default), finds a lighter accent that allows black text.
      *
+     * WCAG 2.1 Requirements (2026 Standards):
+     * - Text contrast (SC 1.4.3): 4.5:1 for AA, 7:1 for AAA (normal text)
+     * - Button-to-background (SC 1.4.11): 3:1 minimum for non-text UI elements
+     *
      * The algorithm prioritizes:
-     * 1. Swatches that allow the preferred foreground color AND meet background contrast
-     * 2. If none found, swatches that meet background contrast (closest to preferred fg)
-     * 3. If user prefers white text but it's impossible, we find the darkest swatch
-     *    that meets background contrast, giving the best chance for white text
+     * 1. Swatches that meet text contrast AND have 3:1+ against background
+     * 2. If none found with preferred text, find best available option
      *
      * Returns both the color and whether the preferred foreground meets accessibility requirements.
      */
@@ -97,6 +99,9 @@ export class ColorSystemGenerator {
         const black = Color.parse("#000000")!;
         const preferWhite = this.config.preferWhiteText;
         const preferredFg = preferWhite ? white : black;
+
+        // WCAG 2.1 SC 1.4.11: Non-text elements need 3:1 contrast against background
+        const nonTextContrastMin = 3.0;
 
         // Collect all swatches with their contrast info
         const allSwatches: {
@@ -113,34 +118,41 @@ export class ColorSystemGenerator {
             allSwatches.push({ index: i, swatch, bgContrast, fgContrast });
         }
 
-        // Strategy 1: Find swatches that meet BOTH requirements
+        // Strategy 1: Find swatches that meet text contrast AND 3:1 background contrast
+        // This is the ideal case - button is visible AND text is accessible
         const perfectSwatches = allSwatches.filter(
-            s => s.bgContrast >= this.contrastRatio && s.fgContrast >= this.contrastRatio
+            s => s.bgContrast >= nonTextContrastMin && s.fgContrast >= this.contrastRatio
         );
 
         if (perfectSwatches.length > 0) {
-            // Pick the one closest to the middle for better saturation
-            const midIdx = Math.floor(perfectSwatches.length / 2);
-            return { color: perfectSwatches[midIdx].swatch, preferredFgAccessible: true };
+            // Pick the one with highest background contrast for best visibility
+            perfectSwatches.sort((a, b) => b.bgContrast - a.bgContrast);
+            return { color: perfectSwatches[0].swatch, preferredFgAccessible: true };
         }
 
-        // Strategy 2: Find swatches that meet background contrast
-        const validSwatches = allSwatches.filter(s => s.bgContrast >= this.contrastRatio);
+        // Strategy 2: Find swatches that meet 3:1 background contrast
+        // Then pick based on text preference
+        const visibleSwatches = allSwatches.filter(s => s.bgContrast >= nonTextContrastMin);
 
-        if (validSwatches.length > 0) {
+        if (visibleSwatches.length > 0) {
             if (preferWhite) {
-                // For white text preference, pick the darkest valid swatch
+                // For white text preference, pick the darkest visible swatch
                 // (highest index = darkest = best chance for white text contrast)
-                validSwatches.sort((a, b) => b.index - a.index);
+                visibleSwatches.sort((a, b) => b.index - a.index);
             } else {
-                // For black text preference, pick the lightest valid swatch
-                // (lowest index = lightest = best chance for black text contrast)
-                validSwatches.sort((a, b) => a.index - b.index);
+                // For black text preference, pick the lightest visible swatch
+                visibleSwatches.sort((a, b) => a.index - b.index);
             }
-            return { color: validSwatches[0].swatch, preferredFgAccessible: false };
+            // Check if the selected swatch meets text contrast
+            const selected = visibleSwatches[0];
+            return {
+                color: selected.swatch,
+                preferredFgAccessible: selected.fgContrast >= this.contrastRatio,
+            };
         }
 
-        // Strategy 3: Fallback to library's contrast swatch
+        // Strategy 3: Fallback - no swatches meet 3:1 background contrast
+        // Use standard contrast swatch (prioritizes text readability over button visibility)
         return {
             color: contrastSwatch(palette, background, this.contrastRatio),
             preferredFgAccessible: false,
