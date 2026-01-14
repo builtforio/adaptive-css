@@ -65,6 +65,88 @@ export class ColorSystemGenerator {
         return blackOrWhiteByContrast(background, this.contrastRatio, preferBlack).toColorString();
     }
 
+    /**
+     * Calculate WCAG contrast ratio between two colors
+     */
+    private getContrastRatio(color1: Color, color2: Color): number {
+        const l1 = color1.relativeLuminance;
+        const l2 = color2.relativeLuminance;
+        const lighter = Math.max(l1, l2);
+        const darker = Math.min(l1, l2);
+        return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    /**
+     * Get accent color optimized for the preferred text color.
+     * When preferWhiteText is true, finds a darker accent that allows white text.
+     * When preferWhiteText is false (default), finds a lighter accent that allows black text.
+     *
+     * The algorithm prioritizes:
+     * 1. Swatches that allow the preferred foreground color AND meet background contrast
+     * 2. If none found, swatches that meet background contrast (closest to preferred fg)
+     * 3. If user prefers white text but it's impossible, we find the darkest swatch
+     *    that meets background contrast, giving the best chance for white text
+     *
+     * Returns both the color and whether the preferred foreground meets accessibility requirements.
+     */
+    private getAccentColorWithPreferredText(
+        palette: PaletteRGB,
+        background: Color
+    ): { color: Color; preferredFgAccessible: boolean } {
+        const white = Color.parse("#ffffff")!;
+        const black = Color.parse("#000000")!;
+        const preferWhite = this.config.preferWhiteText;
+        const preferredFg = preferWhite ? white : black;
+
+        // Collect all swatches with their contrast info
+        const allSwatches: {
+            index: number;
+            swatch: Color;
+            bgContrast: number;
+            fgContrast: number;
+        }[] = [];
+
+        for (let i = 0; i < palette.swatches.length; i++) {
+            const swatch = palette.swatches[i];
+            const bgContrast = this.getContrastRatio(swatch, background);
+            const fgContrast = this.getContrastRatio(swatch, preferredFg);
+            allSwatches.push({ index: i, swatch, bgContrast, fgContrast });
+        }
+
+        // Strategy 1: Find swatches that meet BOTH requirements
+        const perfectSwatches = allSwatches.filter(
+            s => s.bgContrast >= this.contrastRatio && s.fgContrast >= this.contrastRatio
+        );
+
+        if (perfectSwatches.length > 0) {
+            // Pick the one closest to the middle for better saturation
+            const midIdx = Math.floor(perfectSwatches.length / 2);
+            return { color: perfectSwatches[midIdx].swatch, preferredFgAccessible: true };
+        }
+
+        // Strategy 2: Find swatches that meet background contrast
+        const validSwatches = allSwatches.filter(s => s.bgContrast >= this.contrastRatio);
+
+        if (validSwatches.length > 0) {
+            if (preferWhite) {
+                // For white text preference, pick the darkest valid swatch
+                // (highest index = darkest = best chance for white text contrast)
+                validSwatches.sort((a, b) => b.index - a.index);
+            } else {
+                // For black text preference, pick the lightest valid swatch
+                // (lowest index = lightest = best chance for black text contrast)
+                validSwatches.sort((a, b) => a.index - b.index);
+            }
+            return { color: validSwatches[0].swatch, preferredFgAccessible: false };
+        }
+
+        // Strategy 3: Fallback to library's contrast swatch
+        return {
+            color: contrastSwatch(palette, background, this.contrastRatio),
+            preferredFgAccessible: false,
+        };
+    }
+
     private varName(name: string): string {
         const prefix = this.config.prefix ? `${this.config.prefix}-` : "";
         return `--${prefix}${name}`;
@@ -110,14 +192,18 @@ export class ColorSystemGenerator {
         const borderIdx = isDark ? lastIdx - 8 : 6;
         const borderSubtleIdx = isDark ? lastIdx - 6 : 4;
 
-        // Accent colors
-        const accentColor = Color.parse(this.getContrastColor(accent.palette, bgColor))!;
+        // Accent colors - use preference-aware selection
+        const accentResult = this.getAccentColorWithPreferredText(accent.palette, bgColor);
+        const accentColor = accentResult.color;
         const accentHoverIdx = accent.palette.swatches.findIndex(
             s => s.toColorString() === accentColor.toColorString()
         );
         const accentHover = accent.swatches[Math.max(0, accentHoverIdx - (isDark ? -2 : 2))];
         const accentActive = accent.swatches[Math.min(lastIdx, accentHoverIdx + (isDark ? -2 : 2))];
-        const accentFg = this.getForegroundColor(accentColor);
+        // Use the preferred foreground if accessible, otherwise fall back to contrast-based selection
+        const accentFg = accentResult.preferredFgAccessible
+            ? (this.config.preferWhiteText ? "#ffffff" : "#000000")
+            : this.getForegroundColor(accentColor);
 
         // Generate additional palette semantic tokens
         const additionalTokens: string[] = [];
