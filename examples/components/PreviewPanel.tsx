@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 
 interface PreviewPanelProps {
   contrastLevel: "AA" | "AAA";
+  neutralColor?: string;
+  accentColor?: string;
 }
 
-export default function PreviewPanel({ contrastLevel }: PreviewPanelProps) {
+export default function PreviewPanel({ contrastLevel, neutralColor, accentColor }: PreviewPanelProps) {
   const [palettes, setPalettes] = useState<{
     neutral: string[];
     accent: string[];
@@ -14,20 +16,23 @@ export default function PreviewPanel({ contrastLevel }: PreviewPanelProps) {
 
   useEffect(() => {
     // Read generated palette colors from CSS variables
-    const styles = getComputedStyle(document.documentElement);
-    const neutral: string[] = [];
-    const accent: string[] = [];
+    // Use requestAnimationFrame to ensure CSS has been applied
+    requestAnimationFrame(() => {
+      const styles = getComputedStyle(document.documentElement);
+      const neutral: string[] = [];
+      const accent: string[] = [];
 
-    for (let i = 0; i < 56; i++) {
-      const neutralColor = styles.getPropertyValue(`--neutral-${i}`).trim();
-      const accentColor = styles.getPropertyValue(`--accent-${i}`).trim();
+      for (let i = 0; i < 56; i++) {
+        const neutralVal = styles.getPropertyValue(`--neutral-${i}`).trim();
+        const accentVal = styles.getPropertyValue(`--accent-${i}`).trim();
 
-      if (neutralColor) neutral.push(neutralColor);
-      if (accentColor) accent.push(accentColor);
-    }
+        if (neutralVal) neutral.push(neutralVal);
+        if (accentVal) accent.push(accentVal);
+      }
 
-    setPalettes({ neutral, accent });
-  }, [contrastLevel]);
+      setPalettes({ neutral, accent });
+    });
+  }, [contrastLevel, neutralColor, accentColor]);
 
   return (
     <div className="space-y-6">

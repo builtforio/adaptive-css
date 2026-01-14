@@ -174,7 +174,7 @@ export default function HomeContent() {
 
           {/* Right Panel - Preview */}
           <div className="lg:col-span-2">
-            <PreviewPanel contrastLevel={contrastLevel} />
+            <PreviewPanel contrastLevel={contrastLevel} neutralColor={neutral} accentColor={accent} />
           </div>
         </div>
       </div>
