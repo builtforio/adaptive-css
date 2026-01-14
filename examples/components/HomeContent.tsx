@@ -18,6 +18,7 @@ export default function HomeContent() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [preferWhiteText, setPreferWhiteText] = useState(false);
   const [generatedCSS, setGeneratedCSS] = useState("");
+  const [dismissCoolorsPalette, setDismissCoolorsPalette] = useState(false);
 
   // Generate CSS whenever colors or settings change
   useEffect(() => {
@@ -112,6 +113,12 @@ export default function HomeContent() {
     if (colors.info) setInfo(colors.info);
   };
 
+  // Wrapper functions that dismiss Coolors palette when manually changing colors
+  const handleManualColorChange = (setter: (color: string) => void) => (color: string) => {
+    setDismissCoolorsPalette(true);
+    setter(color);
+  };
+
   return (
     <div className="min-h-screen bg-default">
       <div className="max-w-7xl mx-auto p-6">
@@ -140,6 +147,8 @@ export default function HomeContent() {
               onDownloadCSS={handleDownloadCSS}
               onDownloadConfig={handleDownloadConfig}
               onImportCoolors={handleImportCoolors}
+              dismissCoolorsPalette={dismissCoolorsPalette}
+              onDismissCoolorsPaletteHandled={() => setDismissCoolorsPalette(false)}
             />
 
             <div className="bg-surface border-default border rounded-lg p-6 space-y-4">
@@ -148,42 +157,42 @@ export default function HomeContent() {
               <ColorPicker
                 label="Neutral"
                 color={neutral}
-                onChange={setNeutral}
+                onChange={handleManualColorChange(setNeutral)}
                 description="Base gray scale"
               />
 
               <ColorPicker
                 label="Accent"
                 color={accent}
-                onChange={setAccent}
+                onChange={handleManualColorChange(setAccent)}
                 description="Primary brand color"
               />
 
               <ColorPicker
                 label="Success"
                 color={success}
-                onChange={setSuccess}
+                onChange={handleManualColorChange(setSuccess)}
                 description="Positive actions"
               />
 
               <ColorPicker
                 label="Warning"
                 color={warning}
-                onChange={setWarning}
+                onChange={handleManualColorChange(setWarning)}
                 description="Caution states"
               />
 
               <ColorPicker
                 label="Error"
                 color={error}
-                onChange={setError}
+                onChange={handleManualColorChange(setError)}
                 description="Error states"
               />
 
               <ColorPicker
                 label="Info"
                 color={info}
-                onChange={setInfo}
+                onChange={handleManualColorChange(setInfo)}
                 description="Informational"
               />
             </div>

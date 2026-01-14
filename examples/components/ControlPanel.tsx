@@ -12,6 +12,8 @@ interface ControlPanelProps {
   onDownloadCSS: () => void;
   onDownloadConfig: () => void;
   onImportCoolors?: (colors: { neutral?: string; accent?: string; success?: string; warning?: string; error?: string; info?: string }) => void;
+  dismissCoolorsPalette?: boolean;
+  onDismissCoolorsPaletteHandled?: () => void;
 }
 
 /**
@@ -52,49 +54,48 @@ export default function ControlPanel({
   onDownloadCSS,
   onDownloadConfig,
   onImportCoolors,
+  dismissCoolorsPalette,
+  onDismissCoolorsPaletteHandled,
 }: ControlPanelProps) {
   const [coolorsUrl, setCoolorsUrl] = useState("");
   const [parsedColors, setParsedColors] = useState<string[]>([]);
   const [selectedAccentIndex, setSelectedAccentIndex] = useState(0);
   const [importError, setImportError] = useState("");
-  const [importSuccess, setImportSuccess] = useState(false);
+
+  // Handle external dismiss signal (when user manually changes brand colors)
+  if (dismissCoolorsPalette && parsedColors.length > 0) {
+    setCoolorsUrl("");
+    setParsedColors([]);
+    setSelectedAccentIndex(0);
+    onDismissCoolorsPaletteHandled?.();
+  }
 
   const handleUrlChange = (url: string) => {
     setCoolorsUrl(url);
     setImportError("");
-    setImportSuccess(false);
 
     // Try to parse colors as user types
     const colors = parseCoolorsUrl(url);
     if (colors && colors.length > 0) {
       setParsedColors(colors);
       setSelectedAccentIndex(0);
+      // Immediately apply the first color
+      onImportCoolors?.({ accent: colors[0] });
     } else {
       setParsedColors([]);
     }
   };
 
-  const handleImportCoolors = () => {
-    setImportError("");
-    setImportSuccess(false);
+  const handleColorSelect = (index: number) => {
+    setSelectedAccentIndex(index);
+    // Immediately apply the selected color
+    onImportCoolors?.({ accent: parsedColors[index] });
+  };
 
-    if (parsedColors.length === 0) {
-      setImportError("Invalid Coolors URL. Paste a URL like: coolors.co/3b82f6-6b7280-10b981");
-      return;
-    }
-
-    // Use the selected color as accent
-    const colorMap: { neutral?: string; accent?: string; success?: string; warning?: string; error?: string; info?: string } = {
-      accent: parsedColors[selectedAccentIndex],
-    };
-
-    onImportCoolors?.(colorMap);
-    setImportSuccess(true);
+  const handleDismissPalette = () => {
     setCoolorsUrl("");
     setParsedColors([]);
-
-    // Clear success message after 3 seconds
-    setTimeout(() => setImportSuccess(false), 3000);
+    setSelectedAccentIndex(0);
   };
 
   return (
@@ -201,12 +202,20 @@ export default function ControlPanel({
           {/* Color swatches for selection */}
           {parsedColors.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-muted">Select accent color:</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted">Click to preview:</p>
+                <button
+                  onClick={handleDismissPalette}
+                  className="text-xs text-muted hover:text-default transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
               <div className="flex gap-1">
                 {parsedColors.map((color, index) => (
                   <button
                     key={index}
-                    onClick={() => setSelectedAccentIndex(index)}
+                    onClick={() => handleColorSelect(index)}
                     className={`w-10 h-10 rounded transition-all ${
                       selectedAccentIndex === index
                         ? "ring-2 ring-offset-2 ring-accent scale-110"
@@ -218,27 +227,19 @@ export default function ControlPanel({
                 ))}
               </div>
               <p className="text-xs text-muted">
-                Selected: <span className="font-mono">{parsedColors[selectedAccentIndex]}</span>
+                Active: <span className="font-mono">{parsedColors[selectedAccentIndex]}</span>
               </p>
             </div>
           )}
 
-          <button
-            onClick={handleImportCoolors}
-            disabled={parsedColors.length === 0}
-            className="w-full px-4 py-2 bg-accent text-on-accent rounded font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Use as Accent
-          </button>
           {importError && (
             <p className="text-xs text-red-500">{importError}</p>
           )}
-          {importSuccess && (
-            <p className="text-xs text-green-500">Accent color imported!</p>
+          {parsedColors.length === 0 && (
+            <p className="text-xs text-muted">
+              Paste a URL like: coolors.co/3b82f6-6b7280-10b981
+            </p>
           )}
-          <p className="text-xs text-muted">
-            Paste a URL like: coolors.co/3b82f6-6b7280-10b981
-          </p>
         </div>
       </div>
 
